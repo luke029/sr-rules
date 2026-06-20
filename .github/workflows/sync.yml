@@ -1,0 +1,95 @@
+name: Daily Rule Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 每天 UTC 0:00（北京时间 8:00）
+  workflow_dispatch:       # 也可以手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download blackmatrix7 rules
+        run: |
+          BASE="https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master"
+          FILES=(
+            "rule/Shadowrocket/Lan/Lan.list"
+            "rule/Shadowrocket/China/China.list"
+            "rule/Shadowrocket/ChinaMedia/ChinaMedia.list"
+            "rule/Shadowrocket/Apple/Apple.list"
+            "rule/Shadowrocket/BiliBili/BiliBili.list"
+            "rule/Shadowrocket/NetEaseMusic/NetEaseMusic.list"
+            "rule/Shadowrocket/Baidu/Baidu.list"
+            "rule/Shadowrocket/DouBan/DouBan.list"
+            "rule/Shadowrocket/Sina/Sina.list"
+            "rule/Shadowrocket/Zhihu/Zhihu.list"
+            "rule/Shadowrocket/XiaoHongShu/XiaoHongShu.list"
+            "rule/Shadowrocket/DouYin/DouYin.list"
+            "rule/Shadowrocket/Proxy/Proxy.list"
+            "rule/Shadowrocket/Google/Google.list"
+            "rule/Shadowrocket/OpenAI/OpenAI.list"
+            "rule/Shadowrocket/YouTube/YouTube.list"
+            "rule/Shadowrocket/Telegram/Telegram.list"
+            "rule/Shadowrocket/Twitter/Twitter.list"
+            "rule/Shadowrocket/Instagram/Instagram.list"
+            "rule/Shadowrocket/Microsoft/Microsoft.list"
+            "rule/Shadowrocket/Netflix/Netflix.list"
+            "rule/Shadowrocket/Facebook/Facebook.list"
+            "rule/Shadowrocket/Disney/Disney.list"
+            "rule/Shadowrocket/Spotify/Spotify.list"
+            "rule/Shadowrocket/TikTok/TikTok.list"
+            "rule/Shadowrocket/PayPal/PayPal.list"
+            "rule/Shadowrocket/Amazon/Amazon.list"
+            "rule/Shadowrocket/GitHub/GitHub.list"
+            "rule/Shadowrocket/HBO/HBO.list"
+            "rule/Shadowrocket/Sony/Sony.list"
+            "rule/Shadowrocket/Nintendo/Nintendo.list"
+            "rule/Shadowrocket/Epic/Epic.list"
+            "rule/Shadowrocket/Steam/Steam.list"
+            "rule/Shadowrocket/Game/Game.list"
+            "rule/Shadowrocket/Advertising/Advertising.list"
+            "rule/Shadowrocket/Hijacking/Hijacking.list"
+            "rule/Shadowrocket/AppleProxy/AppleProxy.list"
+            "rule/QuantumultX/WeChat/WeChat.list"
+          )
+          for f in "${FILES[@]}"; do
+            name=$(basename "$f")
+            curl -sfL "$BASE/$f" -o "$name" || echo "⚠️ Failed: $name"
+          done
+
+      - name: Download ACL4SSR rules
+        run: |
+          BASE="https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master"
+          declare -A ACL=(
+            [ACL4SSR_ChinaIp.list]="Clash/ChinaIp.list"
+            [ACL4SSR_ChinaDomain.list]="Clash/ChinaDomain.list"
+            [ACL4SSR_ChinaCompanyIp.list]="Clash/ChinaCompanyIp.list"
+            [ACL4SSR_UnBan.list]="Clash/UnBan.list"
+            [ACL4SSR_SteamCN.list]="Clash/Ruleset/SteamCN.list"
+            [ACL4SSR_Download.list]="Clash/Download.list"
+            [ACL4SSR_ChinaMedia.list]="Clash/ChinaMedia.list"
+            [ACL4SSR_ProxyGFWlist.list]="Clash/ProxyGFWlist.list"
+          )
+          for out in "${!ACL[@]}"; do
+            src="${ACL[$out]}"
+            curl -sfL "$BASE/$src" -o "$out" || echo "⚠️ Failed: $out"
+          done
+
+      - name: Download iab0x00 AI rules
+        run: |
+          curl -sfL "https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt" -o AI.txt || echo "⚠️ Failed: AI.txt"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "sr-rules-bot"
+          git config user.email "bot@luke029"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes — rules are up to date"
+          else
+            git commit -m "Auto-sync rules $(date -u '+%Y-%m-%d')"
+            git push
+          fi
