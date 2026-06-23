@@ -2,8 +2,11 @@ name: Daily Rule Sync
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 每天 UTC 0:00（北京时间 8:00）
-  workflow_dispatch:       # 也可以手动触发
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   sync:
@@ -57,7 +60,7 @@ jobs:
           )
           for f in "${FILES[@]}"; do
             name=$(basename "$f")
-            curl -sfL "$BASE/$f" -o "$name" || echo "⚠️ Failed: $name"
+            curl -sfL "$BASE/$f" -o "$name" || echo "skip: $name"
           done
 
       - name: Download ACL4SSR rules
@@ -75,21 +78,24 @@ jobs:
           )
           for out in "${!ACL[@]}"; do
             src="${ACL[$out]}"
-            curl -sfL "$BASE/$src" -o "$out" || echo "⚠️ Failed: $out"
+            curl -sfL "$BASE/$src" -o "$out" || echo "skip: $out"
           done
 
       - name: Download iab0x00 AI rules
         run: |
-          curl -sfL "https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt" -o AI.txt || echo "⚠️ Failed: AI.txt"
+          curl -sfL "https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt" -o AI.txt || echo "skip: AI.txt"
 
       - name: Commit and push if changed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "sr-rules-bot"
           git config user.email "bot@luke029"
           git add -A
           if git diff --staged --quiet; then
-            echo "No changes — rules are up to date"
+            echo "No changes - rules are up to date"
           else
             git commit -m "Auto-sync rules $(date -u '+%Y-%m-%d')"
+            git remote set-url origin https://x-access-token:${GITH...Y}
             git push
           fi
