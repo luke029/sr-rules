@@ -19,9 +19,6 @@ ipv6: false
 allow-lan: true
 
 # ===== 外部控制 (OpenClash Web UI) =====
-external-controller: 0.0.0.0:9090
-external-ui: "/usr/share/openclash/dashboard/"
-secret: ""
 
 # ===== DNS 配置 (从 Shadowrocket 迁移) =====
 dns:
@@ -34,20 +31,17 @@ dns:
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter:
-    # 苹果服务
     - "+.apple.com"
     - "+.icloud.com"
     - "+.icloud-content.com"
     - "+.icloud.com.cn"
     - "+.me.com"
     - "+.itunes.com"
-    # 微软服务
     - "+.microsoft.com"
     - "+.windows.net"
     - "+.microsoftonline.com"
     - "+.office.com"
     - "+.office365.com"
-    # 国内 CDN
     - "+.cdn.*"
     - "+.wsdvs.com"
     - "+.bilibili.com"
@@ -57,16 +51,13 @@ dns:
     - "+.jd.com"
     - "+.qq.com"
     - "+.weixin.qq.com"
-    # 微信/企业微信
     - "+.wechat.com"
     - "+.work.weixin.qq.com"
-    # 华为/小米/OPPO/Vivo
     - "+.mi.com"
     - "+.xiaomi.com"
     - "+.hicloud.com"
     - "+.vivo.com"
     - "+.oppo.com"
-    # 本地/局域网
     - "+.local"
     - "+.localhost"
     - "+.lan"
@@ -77,7 +68,7 @@ dns:
     - https://8.8.4.4/dns-query
     - https://223.5.5.5/dns-query
     - https://223.6.6.6/dns-query
-    - h3://dns.alidns.com/dns-query
+    - https://dns.alidns.com/dns-query
   fallback:
     - https://119.29.29.29/dns-query
     - https://doh.pub/dns-query
@@ -90,12 +81,12 @@ dns:
       - 0.0.0.0/32
 
 # ===== 代理节点 (订阅) =====
-# 💡 订阅链接: 请替换为你自己的 Clash 订阅地址
+# 订阅链接请替换为你自己的 Clash 订阅地址
 proxy-providers:
   My_Subscription:
     type: http
     path: ./proxy_provider/my_sub.yaml
-    url: "http://xxxxxxx:21982/xxxxxxxxxxxxxxxxxb2a5e/clash"
+    url: "https://你的订阅链接.com/proxies"  # ⚠️ 请替换为你的真实订阅链接
     interval: 86400
     health-check:
       enable: true
@@ -104,18 +95,16 @@ proxy-providers:
 
 # ===== 策略组 =====
 proxy-groups:
-  # 🌍 手动选择节点
   - name: PROXY
     type: select
     proxies:
-      - 🚀 自动选择
+      - "\U0001F680 自动选择"
       - DIRECT
       - REJECT
     use:
       - My_Subscription
 
-  # 🚀 自动选择 (按延迟)
-  - name: 🚀 自动选择
+  - name: "\U0001F680 自动选择"
     type: url-test
     proxies:
       - DIRECT
@@ -125,23 +114,8 @@ proxy-groups:
     interval: 300
     tolerance: 50
 
-  # 📦 直连
-  - name: DIRECT
-    type: select
-    proxies:
-      - DIRECT
-
-  # 🚫 拒绝
-  - name: REJECT
-    type: select
-    proxies:
-      - REJECT
-
-# ===== 规则集提供者 (rule-providers) =====
-# 所有规则源来自 luke029/sr-rules 仓库
-# 通过 jsDelivr CDN 加速
+# ===== 规则集提供者 =====
 rule-providers:
-  # === Apple 全直连 ===
   Apple:
     type: http
     behavior: classical
@@ -154,8 +128,12 @@ rule-providers:
     path: ./rule_provider/apple_proxy.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/AppleProxy.list"
     interval: 86400
-
-  # === 国内直连 ===
+  Lan:
+    type: http
+    behavior: classical
+    path: ./rule_provider/lan.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Lan.list"
+    interval: 86400
   ACL4SSR_ChinaIp:
     type: http
     behavior: classical
@@ -210,8 +188,6 @@ rule-providers:
     path: ./rule_provider/china_media.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ChinaMedia.list"
     interval: 86400
-
-  # === 国内常用 App 补充 (DIRECT) ===
   Bank:
     type: http
     behavior: classical
@@ -272,8 +248,6 @@ rule-providers:
     path: ./rule_provider/douyin.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/DouYin.list"
     interval: 86400
-
-  # === 国外代理 ===
   ACL4SSR_ProxyGFWlist:
     type: http
     behavior: classical
@@ -340,8 +314,6 @@ rule-providers:
     path: ./rule_provider/facebook.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Facebook.list"
     interval: 86400
-
-  # === 国外服务补充 ===
   Disney:
     type: http
     behavior: classical
@@ -378,24 +350,18 @@ rule-providers:
     path: ./rule_provider/github.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/GitHub.list"
     interval: 86400
-
-  # === AI 补充 ===
   AI:
     type: http
     behavior: classical
     path: ./rule_provider/ai.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/AI.txt"
     interval: 86400
-
-  # === HBO / Max ===
   HBO:
     type: http
     behavior: classical
     path: ./rule_provider/hbo.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/HBO.list"
     interval: 86400
-
-  # === 游戏平台 ===
   Sony:
     type: http
     behavior: classical
@@ -426,8 +392,6 @@ rule-providers:
     path: ./rule_provider/game.yaml
     url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Game.list"
     interval: 86400
-
-  # === 广告拦截 ===
   Advertising:
     type: http
     behavior: classical
@@ -442,13 +406,10 @@ rule-providers:
     interval: 86400
 
 # ===== 规则列表 =====
-# 规则顺序: 从上到下匹配，保持与原 Shadowrocket 配置一致
 rules:
-  # === Apple 全直连 ===
   - RULE-SET,Apple,DIRECT
   - RULE-SET,AppleProxy,DIRECT
 
-  # === 邮件端口直连 ===
   - DST-PORT,25,DIRECT
   - DST-PORT,465,DIRECT
   - DST-PORT,587,DIRECT
@@ -457,14 +418,12 @@ rules:
   - DST-PORT,993,DIRECT
   - DST-PORT,995,DIRECT
 
-  # === 局域网 ===
   - RULE-SET,Lan,DIRECT
   - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
   - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
   - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
   - IP-CIDR,17.0.0.0/8,DIRECT,no-resolve
 
-  # === 国内直连 ===
   - RULE-SET,ACL4SSR_ChinaIp,DIRECT
   - RULE-SET,ACL4SSR_ChinaDomain,DIRECT
   - RULE-SET,ACL4SSR_ChinaCompanyIp,DIRECT
@@ -475,7 +434,6 @@ rules:
   - RULE-SET,China,DIRECT
   - RULE-SET,ChinaMedia,DIRECT
 
-  # === 国内常用 App 补充 (DIRECT) ===
   - RULE-SET,Bank,DIRECT
   - RULE-SET,BiliBili,DIRECT
   - RULE-SET,NetEaseMusic,DIRECT
@@ -487,7 +445,6 @@ rules:
   - RULE-SET,XiaoHongShu,DIRECT
   - RULE-SET,DouYin,DIRECT
 
-  # === Telegram (外置 IP 段直写，确保 Telegram 走代理) ===
   - DOMAIN-SUFFIX,t.me,PROXY
   - DOMAIN-SUFFIX,tdesktop.com,PROXY
   - DOMAIN-SUFFIX,telegra.ph,PROXY
@@ -505,7 +462,6 @@ rules:
   - IP-CIDR,2001:B28:F23F::/48,PROXY,no-resolve
   - IP-CIDR,2001:67C:4E8::/48,PROXY,no-resolve
 
-  # === 国外代理 ===
   - RULE-SET,ACL4SSR_ProxyGFWlist,PROXY
   - RULE-SET,Proxy,PROXY
   - RULE-SET,Google,PROXY
@@ -518,7 +474,6 @@ rules:
   - RULE-SET,Netflix,PROXY
   - RULE-SET,Facebook,PROXY
 
-  # === 国外服务补充 ===
   - RULE-SET,Disney,PROXY
   - RULE-SET,Spotify,PROXY
   - RULE-SET,TikTok,PROXY
@@ -526,31 +481,25 @@ rules:
   - RULE-SET,Amazon,PROXY
   - RULE-SET,GitHub,PROXY
 
-  # === AI 补充 ===
   - RULE-SET,AI,PROXY
 
-  # === HBO / Max ===
   - DOMAIN-SUFFIX,litix.io,PROXY
   - DOMAIN-SUFFIX,discomax.com,PROXY
   - DOMAIN-SUFFIX,brightline.tv,PROXY
   - RULE-SET,HBO,PROXY
 
-  # === 游戏平台补充 ===
   - RULE-SET,Sony,PROXY
   - RULE-SET,Nintendo,PROXY
   - RULE-SET,Epic,PROXY
   - RULE-SET,Steam,PROXY
   - RULE-SET,Game,PROXY
 
-  # === 广告拦截 ===
   - RULE-SET,Advertising,REJECT
   - RULE-SET,Hijacking,REJECT
 
-  # === DNS 防泄露 ===
   - DOMAIN-SUFFIX,dnsleaktest.com,PROXY
   - DOMAIN-SUFFIX,ipleak.net,PROXY
   - DOMAIN-SUFFIX,whoer.net,PROXY
 
-  # === 最终规则 ===
   - GEOIP,CN,DIRECT
   - MATCH,PROXY
