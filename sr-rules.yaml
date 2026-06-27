@@ -1,0 +1,556 @@
+# OpenClash 综合分流配置 — 从 Shadowrocket 迁移
+# 源配置: sr-rules.conf (luke029/sr-rules)
+# 规则来源: blackmatrix7/ios_rule_script
+# 生成日期: 2026-06-27
+
+# ===== 端口设置 =====
+port: 7890
+socks-port: 7891
+redir-port: 7892
+mixed-port: 7893
+
+# 允许外部访问
+bind-address: "0.0.0.0"
+
+# ===== 运行模式 =====
+mode: rule
+log-level: info
+ipv6: false
+allow-lan: true
+
+# ===== 外部控制 (OpenClash Web UI) =====
+external-controller: 0.0.0.0:9090
+external-ui: "/usr/share/openclash/dashboard/"
+secret: ""
+
+# ===== DNS 配置 (从 Shadowrocket 迁移) =====
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    # 苹果服务
+    - "+.apple.com"
+    - "+.icloud.com"
+    - "+.icloud-content.com"
+    - "+.icloud.com.cn"
+    - "+.me.com"
+    - "+.itunes.com"
+    # 微软服务
+    - "+.microsoft.com"
+    - "+.windows.net"
+    - "+.microsoftonline.com"
+    - "+.office.com"
+    - "+.office365.com"
+    # 国内 CDN
+    - "+.cdn.*"
+    - "+.wsdvs.com"
+    - "+.bilibili.com"
+    - "+.163.com"
+    - "+.douyin.com"
+    - "+.taobao.com"
+    - "+.jd.com"
+    - "+.qq.com"
+    - "+.weixin.qq.com"
+    # 微信/企业微信
+    - "+.wechat.com"
+    - "+.work.weixin.qq.com"
+    # 华为/小米/OPPO/Vivo
+    - "+.mi.com"
+    - "+.xiaomi.com"
+    - "+.hicloud.com"
+    - "+.vivo.com"
+    - "+.oppo.com"
+    # 本地/局域网
+    - "+.local"
+    - "+.localhost"
+    - "+.lan"
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://1.0.0.1/dns-query
+    - https://8.8.8.8/dns-query
+    - https://8.8.4.4/dns-query
+    - https://223.5.5.5/dns-query
+    - https://223.6.6.6/dns-query
+    - h3://dns.alidns.com/dns-query
+  fallback:
+    - https://119.29.29.29/dns-query
+    - https://doh.pub/dns-query
+    - tls://doh.pub
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+
+# ===== 代理节点 (订阅) =====
+# 💡 订阅链接: 请替换为你自己的 Clash 订阅地址
+proxy-providers:
+  My_Subscription:
+    type: http
+    path: ./proxy_provider/my_sub.yaml
+    url: "http://xxxxxxx:21982/xxxxxxxxxxxxxxxxxb2a5e/clash"
+    interval: 86400
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+
+# ===== 策略组 =====
+proxy-groups:
+  # 🌍 手动选择节点
+  - name: PROXY
+    type: select
+    proxies:
+      - 🚀 自动选择
+      - DIRECT
+      - REJECT
+    use:
+      - My_Subscription
+
+  # 🚀 自动选择 (按延迟)
+  - name: 🚀 自动选择
+    type: url-test
+    proxies:
+      - DIRECT
+    use:
+      - My_Subscription
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  # 📦 直连
+  - name: DIRECT
+    type: select
+    proxies:
+      - DIRECT
+
+  # 🚫 拒绝
+  - name: REJECT
+    type: select
+    proxies:
+      - REJECT
+
+# ===== 规则集提供者 (rule-providers) =====
+# 所有规则源来自 luke029/sr-rules 仓库
+# 通过 jsDelivr CDN 加速
+rule-providers:
+  # === Apple 全直连 ===
+  Apple:
+    type: http
+    behavior: classical
+    path: ./rule_provider/apple.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Apple.list"
+    interval: 86400
+  AppleProxy:
+    type: http
+    behavior: classical
+    path: ./rule_provider/apple_proxy.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/AppleProxy.list"
+    interval: 86400
+
+  # === 国内直连 ===
+  ACL4SSR_ChinaIp:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_china_ip.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_ChinaIp.list"
+    interval: 86400
+  ACL4SSR_ChinaDomain:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_china_domain.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_ChinaDomain.list"
+    interval: 86400
+  ACL4SSR_ChinaCompanyIp:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_china_company_ip.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_ChinaCompanyIp.list"
+    interval: 86400
+  ACL4SSR_UnBan:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_unban.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_UnBan.list"
+    interval: 86400
+  ACL4SSR_SteamCN:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_steam_cn.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_SteamCN.list"
+    interval: 86400
+  ACL4SSR_Download:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_download.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_Download.list"
+    interval: 86400
+  ACL4SSR_ChinaMedia:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_china_media.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_ChinaMedia.list"
+    interval: 86400
+  China:
+    type: http
+    behavior: classical
+    path: ./rule_provider/china.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/China.list"
+    interval: 86400
+  ChinaMedia:
+    type: http
+    behavior: classical
+    path: ./rule_provider/china_media.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ChinaMedia.list"
+    interval: 86400
+
+  # === 国内常用 App 补充 (DIRECT) ===
+  Bank:
+    type: http
+    behavior: classical
+    path: ./rule_provider/bank.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Bank.list"
+    interval: 86400
+  BiliBili:
+    type: http
+    behavior: classical
+    path: ./rule_provider/bilibili.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/BiliBili.list"
+    interval: 86400
+  NetEaseMusic:
+    type: http
+    behavior: classical
+    path: ./rule_provider/netease_music.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/NetEaseMusic.list"
+    interval: 86400
+  Baidu:
+    type: http
+    behavior: classical
+    path: ./rule_provider/baidu.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Baidu.list"
+    interval: 86400
+  DouBan:
+    type: http
+    behavior: classical
+    path: ./rule_provider/douban.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/DouBan.list"
+    interval: 86400
+  WeChat:
+    type: http
+    behavior: classical
+    path: ./rule_provider/wechat.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/WeChat.list"
+    interval: 86400
+  Sina:
+    type: http
+    behavior: classical
+    path: ./rule_provider/sina.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Sina.list"
+    interval: 86400
+  Zhihu:
+    type: http
+    behavior: classical
+    path: ./rule_provider/zhihu.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Zhihu.list"
+    interval: 86400
+  XiaoHongShu:
+    type: http
+    behavior: classical
+    path: ./rule_provider/xiaohongshu.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/XiaoHongShu.list"
+    interval: 86400
+  DouYin:
+    type: http
+    behavior: classical
+    path: ./rule_provider/douyin.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/DouYin.list"
+    interval: 86400
+
+  # === 国外代理 ===
+  ACL4SSR_ProxyGFWlist:
+    type: http
+    behavior: classical
+    path: ./rule_provider/acl4ssr_proxy_gfw.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/ACL4SSR_ProxyGFWlist.list"
+    interval: 86400
+  Proxy:
+    type: http
+    behavior: classical
+    path: ./rule_provider/proxy.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Proxy.list"
+    interval: 86400
+  Google:
+    type: http
+    behavior: classical
+    path: ./rule_provider/google.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Google.list"
+    interval: 86400
+  OpenAI:
+    type: http
+    behavior: classical
+    path: ./rule_provider/openai.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/OpenAI.list"
+    interval: 86400
+  YouTube:
+    type: http
+    behavior: classical
+    path: ./rule_provider/youtube.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/YouTube.list"
+    interval: 86400
+  Telegram:
+    type: http
+    behavior: classical
+    path: ./rule_provider/telegram.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Telegram.list"
+    interval: 86400
+  Twitter:
+    type: http
+    behavior: classical
+    path: ./rule_provider/twitter.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Twitter.list"
+    interval: 86400
+  Instagram:
+    type: http
+    behavior: classical
+    path: ./rule_provider/instagram.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Instagram.list"
+    interval: 86400
+  Microsoft:
+    type: http
+    behavior: classical
+    path: ./rule_provider/microsoft.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Microsoft.list"
+    interval: 86400
+  Netflix:
+    type: http
+    behavior: classical
+    path: ./rule_provider/netflix.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Netflix.list"
+    interval: 86400
+  Facebook:
+    type: http
+    behavior: classical
+    path: ./rule_provider/facebook.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Facebook.list"
+    interval: 86400
+
+  # === 国外服务补充 ===
+  Disney:
+    type: http
+    behavior: classical
+    path: ./rule_provider/disney.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Disney.list"
+    interval: 86400
+  Spotify:
+    type: http
+    behavior: classical
+    path: ./rule_provider/spotify.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Spotify.list"
+    interval: 86400
+  TikTok:
+    type: http
+    behavior: classical
+    path: ./rule_provider/tiktok.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/TikTok.list"
+    interval: 86400
+  PayPal:
+    type: http
+    behavior: classical
+    path: ./rule_provider/paypal.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/PayPal.list"
+    interval: 86400
+  Amazon:
+    type: http
+    behavior: classical
+    path: ./rule_provider/amazon.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Amazon.list"
+    interval: 86400
+  GitHub:
+    type: http
+    behavior: classical
+    path: ./rule_provider/github.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/GitHub.list"
+    interval: 86400
+
+  # === AI 补充 ===
+  AI:
+    type: http
+    behavior: classical
+    path: ./rule_provider/ai.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/AI.txt"
+    interval: 86400
+
+  # === HBO / Max ===
+  HBO:
+    type: http
+    behavior: classical
+    path: ./rule_provider/hbo.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/HBO.list"
+    interval: 86400
+
+  # === 游戏平台 ===
+  Sony:
+    type: http
+    behavior: classical
+    path: ./rule_provider/sony.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Sony.list"
+    interval: 86400
+  Nintendo:
+    type: http
+    behavior: classical
+    path: ./rule_provider/nintendo.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Nintendo.list"
+    interval: 86400
+  Epic:
+    type: http
+    behavior: classical
+    path: ./rule_provider/epic.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Epic.list"
+    interval: 86400
+  Steam:
+    type: http
+    behavior: classical
+    path: ./rule_provider/steam.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Steam.list"
+    interval: 86400
+  Game:
+    type: http
+    behavior: classical
+    path: ./rule_provider/game.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Game.list"
+    interval: 86400
+
+  # === 广告拦截 ===
+  Advertising:
+    type: http
+    behavior: classical
+    path: ./rule_provider/advertising.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Advertising.list"
+    interval: 86400
+  Hijacking:
+    type: http
+    behavior: classical
+    path: ./rule_provider/hijacking.yaml
+    url: "https://cdn.jsdelivr.net/gh/luke029/sr-rules@main/Hijacking.list"
+    interval: 86400
+
+# ===== 规则列表 =====
+# 规则顺序: 从上到下匹配，保持与原 Shadowrocket 配置一致
+rules:
+  # === Apple 全直连 ===
+  - RULE-SET,Apple,DIRECT
+  - RULE-SET,AppleProxy,DIRECT
+
+  # === 邮件端口直连 ===
+  - DST-PORT,25,DIRECT
+  - DST-PORT,465,DIRECT
+  - DST-PORT,587,DIRECT
+  - DST-PORT,110,DIRECT
+  - DST-PORT,143,DIRECT
+  - DST-PORT,993,DIRECT
+  - DST-PORT,995,DIRECT
+
+  # === 局域网 ===
+  - RULE-SET,Lan,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,17.0.0.0/8,DIRECT,no-resolve
+
+  # === 国内直连 ===
+  - RULE-SET,ACL4SSR_ChinaIp,DIRECT
+  - RULE-SET,ACL4SSR_ChinaDomain,DIRECT
+  - RULE-SET,ACL4SSR_ChinaCompanyIp,DIRECT
+  - RULE-SET,ACL4SSR_UnBan,DIRECT
+  - RULE-SET,ACL4SSR_SteamCN,DIRECT
+  - RULE-SET,ACL4SSR_Download,DIRECT
+  - RULE-SET,ACL4SSR_ChinaMedia,DIRECT
+  - RULE-SET,China,DIRECT
+  - RULE-SET,ChinaMedia,DIRECT
+
+  # === 国内常用 App 补充 (DIRECT) ===
+  - RULE-SET,Bank,DIRECT
+  - RULE-SET,BiliBili,DIRECT
+  - RULE-SET,NetEaseMusic,DIRECT
+  - RULE-SET,Baidu,DIRECT
+  - RULE-SET,DouBan,DIRECT
+  - RULE-SET,WeChat,DIRECT
+  - RULE-SET,Sina,DIRECT
+  - RULE-SET,Zhihu,DIRECT
+  - RULE-SET,XiaoHongShu,DIRECT
+  - RULE-SET,DouYin,DIRECT
+
+  # === Telegram (外置 IP 段直写，确保 Telegram 走代理) ===
+  - DOMAIN-SUFFIX,t.me,PROXY
+  - DOMAIN-SUFFIX,tdesktop.com,PROXY
+  - DOMAIN-SUFFIX,telegra.ph,PROXY
+  - DOMAIN-SUFFIX,telegram.me,PROXY
+  - DOMAIN-SUFFIX,telegram.org,PROXY
+  - DOMAIN-SUFFIX,telesco.pe,PROXY
+  - IP-CIDR,91.108.4.0/22,PROXY,no-resolve
+  - IP-CIDR,91.108.8.0/22,PROXY,no-resolve
+  - IP-CIDR,91.108.12.0/22,PROXY,no-resolve
+  - IP-CIDR,91.108.16.0/22,PROXY,no-resolve
+  - IP-CIDR,91.108.56.0/22,PROXY,no-resolve
+  - IP-CIDR,109.239.140.0/24,PROXY,no-resolve
+  - IP-CIDR,149.154.160.0/20,PROXY,no-resolve
+  - IP-CIDR,2001:B28:F23D::/48,PROXY,no-resolve
+  - IP-CIDR,2001:B28:F23F::/48,PROXY,no-resolve
+  - IP-CIDR,2001:67C:4E8::/48,PROXY,no-resolve
+
+  # === 国外代理 ===
+  - RULE-SET,ACL4SSR_ProxyGFWlist,PROXY
+  - RULE-SET,Proxy,PROXY
+  - RULE-SET,Google,PROXY
+  - RULE-SET,OpenAI,PROXY
+  - RULE-SET,YouTube,PROXY
+  - RULE-SET,Telegram,PROXY
+  - RULE-SET,Twitter,PROXY
+  - RULE-SET,Instagram,PROXY
+  - RULE-SET,Microsoft,PROXY
+  - RULE-SET,Netflix,PROXY
+  - RULE-SET,Facebook,PROXY
+
+  # === 国外服务补充 ===
+  - RULE-SET,Disney,PROXY
+  - RULE-SET,Spotify,PROXY
+  - RULE-SET,TikTok,PROXY
+  - RULE-SET,PayPal,PROXY
+  - RULE-SET,Amazon,PROXY
+  - RULE-SET,GitHub,PROXY
+
+  # === AI 补充 ===
+  - RULE-SET,AI,PROXY
+
+  # === HBO / Max ===
+  - DOMAIN-SUFFIX,litix.io,PROXY
+  - DOMAIN-SUFFIX,discomax.com,PROXY
+  - DOMAIN-SUFFIX,brightline.tv,PROXY
+  - RULE-SET,HBO,PROXY
+
+  # === 游戏平台补充 ===
+  - RULE-SET,Sony,PROXY
+  - RULE-SET,Nintendo,PROXY
+  - RULE-SET,Epic,PROXY
+  - RULE-SET,Steam,PROXY
+  - RULE-SET,Game,PROXY
+
+  # === 广告拦截 ===
+  - RULE-SET,Advertising,REJECT
+  - RULE-SET,Hijacking,REJECT
+
+  # === DNS 防泄露 ===
+  - DOMAIN-SUFFIX,dnsleaktest.com,PROXY
+  - DOMAIN-SUFFIX,ipleak.net,PROXY
+  - DOMAIN-SUFFIX,whoer.net,PROXY
+
+  # === 最终规则 ===
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY
