@@ -1,6 +1,3 @@
-# OpenClash 综合分流配置 — 从 Shadowrocket 迁移
-# 源配置: sr-rules.conf (luke029/sr-rules)
-# 规则来源: blackmatrix7/ios_rule_script
 # 生成日期: 2026-06-27
 
 # ===== 端口设置 =====
