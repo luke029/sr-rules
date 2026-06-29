@@ -1,4 +1,8 @@
+# OpenClash 综合分流配置 — 从 Shadowrocket 迁移
+# 源配置: sr-rules.conf (luke029/sr-rules)
+# 规则来源: blackmatrix7/ios_rule_script
 # 生成日期: 2026-06-27
+
 # ===== 端口设置 =====
 port: 7890
 socks-port: 7891
@@ -77,11 +81,12 @@ dns:
       - 0.0.0.0/32
 
 # ===== 代理节点 (订阅) =====
+# 订阅链接请替换为你自己的 Clash 订阅地址
 proxy-providers:
   My_Subscription:
     type: http
     path: ./proxy_provider/my_sub.yaml
-    url: "https://你的订阅链接.com/proxies"  # ⚠️ 请替换为你的真实订阅链接
+    url: "https://你的订阅链接.com/proxies"  # ⚠️ 请替换为你自己的订阅链接
     interval: 86400
     health-check:
       enable: true
@@ -412,7 +417,6 @@ rules:
   - DST-PORT,143,DIRECT
   - DST-PORT,993,DIRECT
   - DST-PORT,995,DIRECT
-
   # === STUN 阻断 — 防止 WebRTC 泄漏真实 IP ===
   - DST-PORT,3478,REJECT
   - DST-PORT,3479,REJECT
