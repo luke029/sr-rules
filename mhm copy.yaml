@@ -8,8 +8,16 @@ geosite-url: ""
 mmdb-url: ""
 
 # ==================== 代理提供者 ====================
-
-
+proxy-providers:
+  订阅:
+    type: http
+    url: "https://你的订阅链接占位（由 fx.conf 动态替换）"
+    path: ./proxy_provider/订阅.yaml
+    interval: 86400
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 
 # ==================== 策略组（极简） ====================
 proxy-groups:
