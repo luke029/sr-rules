@@ -1,4 +1,4 @@
-# mhm.yaml - 最终完整版（已加大陆区域绕过）
+# mhm.yaml - 最终完整版（大陆绕过已强制开启）
 # 日期：2026-07-15
 
 # ==================== 全局设置 ====================
@@ -7,11 +7,15 @@ geoip-url: ""
 geosite-url: ""
 mmdb-url: ""
 
+# 强制开启大陆区域绕过
+china_ip_route: true
+china_ip6_route: false
+
 # ==================== 代理提供者 ====================
 proxy-providers:
   订阅:
     type: http
-    url: "https://你的真实订阅链接（由 fx.conf 注入）"
+    url: "https://你的订阅链接（由环境变量注入）"
     path: ./proxy_provider/订阅.yaml
     interval: 86400
     health-check:
@@ -130,7 +134,7 @@ rules:
   - DST-PORT,993,DIRECT
   - DST-PORT,995,DIRECT
 
-  # 细致分流 + 大陆区域绕过
+  # 细致分流
   - RULE-SET,Tracking,REJECT
   - RULE-SET,Advertising,REJECT
   - RULE-SET,LocationDKS,PROXY
@@ -156,7 +160,7 @@ rules:
   - RULE-SET,Google,PROXY
   - RULE-SET,Microsoft,PROXY
   - RULE-SET,Proxy,PROXY
-  - RULE-SET,China,DIRECT   # 大陆区域绕过
+  - RULE-SET,China,DIRECT
 
   # IP规则
   - RULE-SET,AdvertisingIP,REJECT,no-resolve
@@ -170,7 +174,7 @@ rules:
   - RULE-SET,StreamingIP,PROXY,no-resolve
   - RULE-SET,GoogleIP,PROXY,no-resolve
   - RULE-SET,ProxyIP,PROXY,no-resolve
-  - RULE-SET,ChinaIP,DIRECT,no-resolve   # 大陆IP绕过
+  - RULE-SET,ChinaIP,DIRECT,no-resolve
 
   - MATCH,PROXY
 
