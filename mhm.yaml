@@ -1,7 +1,7 @@
-# mhm.yaml - 最终完整版（强制模板 + 关闭 GEO 数据库）
+# mhm.yaml - 最终完整版（已加大陆区域绕过）
 # 日期：2026-07-15
 
-# ==================== 全局设置（彻底关闭系统自带 GEO） ====================
+# ==================== 全局设置 ====================
 geodata-mode: false
 geoip-url: ""
 geosite-url: ""
@@ -19,7 +19,7 @@ proxy-providers:
       url: http://www.gstatic.com/generate_204
       interval: 300
 
-# ==================== 策略组（极简） ====================
+# ==================== 策略组 ====================
 proxy-groups:
   - name: PROXY
     type: select
@@ -130,7 +130,7 @@ rules:
   - DST-PORT,993,DIRECT
   - DST-PORT,995,DIRECT
 
-  # 细致分流
+  # 细致分流 + 大陆区域绕过
   - RULE-SET,Tracking,REJECT
   - RULE-SET,Advertising,REJECT
   - RULE-SET,LocationDKS,PROXY
@@ -156,7 +156,7 @@ rules:
   - RULE-SET,Google,PROXY
   - RULE-SET,Microsoft,PROXY
   - RULE-SET,Proxy,PROXY
-  - RULE-SET,China,DIRECT
+  - RULE-SET,China,DIRECT   # 大陆区域绕过
 
   # IP规则
   - RULE-SET,AdvertisingIP,REJECT,no-resolve
@@ -170,7 +170,7 @@ rules:
   - RULE-SET,StreamingIP,PROXY,no-resolve
   - RULE-SET,GoogleIP,PROXY,no-resolve
   - RULE-SET,ProxyIP,PROXY,no-resolve
-  - RULE-SET,ChinaIP,DIRECT,no-resolve
+  - RULE-SET,ChinaIP,DIRECT,no-resolve   # 大陆IP绕过
 
   - MATCH,PROXY
 
