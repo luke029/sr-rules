@@ -1,15 +1,23 @@
-# mhm.yaml - 最终完整版（全部 666OS + jsDelivr CDN + 彻底关闭 GEO 数据库）
+# mhm.yaml - 最终完整版（强制模板 + 关闭 GEO 数据库）
 # 日期：2026-07-15
 
-# ==================== 全局设置（彻底关闭系统自带 GEO 数据库） ====================
+# ==================== 全局设置（彻底关闭系统自带 GEO） ====================
 geodata-mode: false
 geoip-url: ""
 geosite-url: ""
 mmdb-url: ""
 
 # ==================== 代理提供者 ====================
-
-
+proxy-providers:
+  订阅:
+    type: http
+    url: "https://你的真实订阅链接（由 fx.conf 注入）"
+    path: ./proxy_provider/订阅.yaml
+    interval: 86400
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
 
 # ==================== 策略组（极简） ====================
 proxy-groups:
@@ -99,7 +107,7 @@ sniffer:
 
 # ==================== 规则路由 ====================
 rules:
-  # === 你必须保留的特殊规则（最高优先级） ===
+  # 你的特殊规则
   - DOMAIN-SUFFIX,openspeech.bytedance.com,DIRECT
   - IP-CIDR,216.167.71.163/32,DIRECT,no-resolve
   - IP-CIDR,45.8.115.16/32,DIRECT,no-resolve
@@ -122,7 +130,7 @@ rules:
   - DST-PORT,993,DIRECT
   - DST-PORT,995,DIRECT
 
-  # === 细致分流规则（全部保留，只指向 DIRECT / PROXY / REJECT） ===
+  # 细致分流
   - RULE-SET,Tracking,REJECT
   - RULE-SET,Advertising,REJECT
   - RULE-SET,LocationDKS,PROXY
@@ -164,15 +172,13 @@ rules:
   - RULE-SET,ProxyIP,PROXY,no-resolve
   - RULE-SET,ChinaIP,DIRECT,no-resolve
 
-  # 兜底
   - MATCH,PROXY
 
-# ==================== 规则集（全部使用 666OS + jsDelivr CDN） ====================
+# ==================== 规则集 ====================
 BehaviorDN: &BehaviorDN {type: http, behavior: domain, format: mrs, interval: 86400}
 BehaviorIP: &BehaviorIP {type: http, behavior: ipcidr, format: mrs, interval: 86400}
 
 rule-providers:
-  # 域名规则
   Tracking: {<<: *BehaviorDN, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/domain/Tracking.mrs}
   Advertising: {<<: *BehaviorDN, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/domain/Advertising.mrs}
   Direct: {<<: *BehaviorDN, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/domain/Direct.mrs}
@@ -200,7 +206,6 @@ rule-providers:
   Proxy: {<<: *BehaviorDN, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/domain/Proxy.mrs}
   China: {<<: *BehaviorDN, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/domain/China.mrs}
 
-  # IP规则
   AdvertisingIP: {<<: *BehaviorIP, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/ip/Advertising.mrs}
   PrivateIP: {<<: *BehaviorIP, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/ip/Private.mrs}
   AIIP: {<<: *BehaviorIP, url: https://cdn.jsdelivr.net/gh/666OS/rules@release/mihomo/ip/AI.mrs}
