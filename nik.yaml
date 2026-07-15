@@ -1,0 +1,296 @@
+# ============================================
+# Mihomo 单文件配置 - 纯官方 .mrs
+# ============================================
+proxy-providers:
+  dm:
+    type: http
+    url: "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    path: ./proxy_provider/dm.yaml
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.google.com/generate_204
+      interval: 300
+
+proxy-groups:
+  - name: PROXY
+    type: select
+    proxies:
+      - "自动选择"
+      - DIRECT
+      - REJECT
+    use:
+      - dm
+  - name: "自动选择"
+    type: url-test
+    url: https://www.google.com/generate_204
+    interval: 300
+    tolerance: 50
+    lazy: true
+    use:
+      - dm
+
+mode: rule
+mixed-port: 7890
+ipv6: false
+log-level: warning
+allow-lan: false
+unified-delay: true
+tcp-concurrent: true
+keep-alive-interval: 15
+keep-alive-idle: 600
+find-process-mode: off
+
+external-ui-url: https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+external-ui-name: zashboard
+external-ui: ui
+external-controller: 0.0.0.0:9090
+secret: "88888888"
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+tun:
+  enable: true
+  stack: system
+  dns-hijack:
+    - any:53
+  device: nikki
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:1053
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter-mode: blacklist
+  respect-rules: true
+  use-hosts: true
+  use-system-hosts: false
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://223.5.5.5/dns-query
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  proxy-server-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver-policy:
+    'rule-set:cn_domain':
+      - https://223.5.5.5/dns-query
+      - https://dns.alidns.com/dns-query
+    'rule-set:private_domain':
+      - https://223.5.5.5/dns-query
+      - https://dns.alidns.com/dns-query
+    'rule-set:geolocation-!cn':
+      - https://1.1.1.1/dns-query
+      - https://8.8.8.8/dns-query
+  fake-ip-filter:
+    - "rule-set:cn_domain"
+    - "rule-set:private_domain"
+    - "+.lan"
+    - "+.local"
+    - "+.miwifi.com"
+    - "+.push.apple.com"
+
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: false
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443, 8881, 8882, 8883, 8884, 8885]
+    QUIC:
+      ports: [443, 8443, 8881, 8882, 8883, 8884, 8885, 20000-20300]
+  skip-domain:
+    - "Mijia Cloud"
+    - "+.push.apple.com"
+
+rules:
+  - DOMAIN-SUFFIX,openspeech.bytedance.com,DIRECT
+  - DOMAIN-SUFFIX,doubao.com,DIRECT
+  - DOMAIN-SUFFIX,volcengine.com,DIRECT
+  - DOMAIN-SUFFIX,volces.com,DIRECT
+  - DOMAIN-SUFFIX,bytedance.com,DIRECT
+  - DOMAIN-SUFFIX,toutiao.com,DIRECT
+  - DOMAIN-SUFFIX,snssdk.com,DIRECT
+  - DOMAIN-SUFFIX,byteimg.com,DIRECT
+  - IP-CIDR,179.253.224.156/32,DIRECT,no-resolve
+  - IP-CIDR,216.167.71.163/32,DIRECT,no-resolve
+  - IP-CIDR,45.8.115.16/32,DIRECT,no-resolve
+  - IP-CIDR,103.118.252.208/32,DIRECT,no-resolve
+  - IP-CIDR,191.222.223.30/32,DIRECT,no-resolve
+  - IP-CIDR,17.0.0.0/8,DIRECT,no-resolve
+  - DST-PORT,25,DIRECT
+  - DST-PORT,465,DIRECT
+  - DST-PORT,587,DIRECT
+  - DST-PORT,110,DIRECT
+  - DST-PORT,143,DIRECT
+  - DST-PORT,993,DIRECT
+  - DST-PORT,995,DIRECT
+  - DOMAIN-SUFFIX,mirror.sjtu.edu.cn,DIRECT
+  - DOMAIN-KEYWORD,sjtu.edu.cn,DIRECT
+  - DOMAIN-SUFFIX,immortalwrt.org,DIRECT
+  - DOMAIN-SUFFIX,openwrt.org,DIRECT
+  - DOMAIN-SUFFIX,downloads.openwrt.org,DIRECT
+  - DOMAIN-SUFFIX,mirrors.aliyun.com,DIRECT
+  - DOMAIN-SUFFIX,mirrors.cloud.tencent.com,DIRECT
+  - DOMAIN-SUFFIX,mirrors.tuna.tsinghua.edu.cn,DIRECT
+  - RULE-SET,private_ip,DIRECT,no-resolve
+  - RULE-SET,private_domain,DIRECT
+  - RULE-SET,cn_domain,DIRECT
+  - RULE-SET,github_domain,PROXY
+  - RULE-SET,twitter_domain,PROXY
+  - RULE-SET,twitter_ip,PROXY,no-resolve
+  - RULE-SET,youtube_domain,PROXY
+  - RULE-SET,google_domain,PROXY
+  - RULE-SET,google_ip,PROXY,no-resolve
+  - RULE-SET,telegram_domain,PROXY
+  - RULE-SET,telegram_ip,PROXY,no-resolve
+  - RULE-SET,netflix_domain,PROXY
+  - RULE-SET,netflix_ip,PROXY,no-resolve
+  - RULE-SET,bilibili_domain,PROXY
+  - RULE-SET,bahamut_domain,PROXY
+  - RULE-SET,spotify_domain,PROXY
+  - RULE-SET,geolocation-!cn,PROXY
+  - RULE-SET,cn_ip,DIRECT
+  - MATCH,PROXY
+
+rule-providers:
+  private_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs"
+  cn_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"
+  geolocation-!cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.mrs"
+  google_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"
+  youtube_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs"
+  twitter_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitter.mrs"
+  telegram_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"
+  netflix_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"
+  github_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"
+  biliintl_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/biliintl.mrs"
+  bilibili_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bilibili.mrs"
+  bahamut_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bahamut.mrs"
+  spotify_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs"
+  pixiv_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/pixiv.mrs"
+  ehentai_domain:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/ehentai.mrs"
+  private_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs"
+  cn_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"
+  google_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"
+  netflix_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs"
+  twitter_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/twitter.mrs"
+  telegram_ip:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"
+
